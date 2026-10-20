@@ -1,0 +1,13 @@
+module(name = "ccbus", version = "0.1.0")
+
+bazel_dep(name = "rules_cc", version = "0.2.26")
+bazel_dep(name = "rules_shell", version = "0.8.0")
+bazel_dep(name = "nlohmann_json", version = "3.12.0.bcr.2")
+bazel_dep(name = "sqlite3", version = "3.53.4")
+bazel_dep(name = "ftxui", version = "6.1.9")
+
+# libsystemd comes from the system (pkg-config) so ccbus-tui can send desktop
+# notifications over D-Bus. Without it the TUI still builds, just without them.
+systemd = use_extension("//bazel:systemd.bzl", "systemd")
+use_repo(systemd, "libsystemd")
+

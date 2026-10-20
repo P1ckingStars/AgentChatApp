@@ -1,0 +1,71 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
+# Both binaries live in this package so they end up side by side in bazel-bin/:
+# ccbus-tui runs the ccbus next to it for the local host.
+
+WARNINGS = ["-Wall", "-Wextra"]
+
+cc_library(
+    name = "util",
+    srcs = ["server/util.cpp"],
+    hdrs = ["server/util.hpp"],
+    copts = WARNINGS,
+    deps = ["@nlohmann_json//:json"],
+)
+
+cc_binary(
+    name = "ccbus",
+    srcs = [
+        "server/commands.hpp",
+        "server/db.cpp",
+        "server/db.hpp",
+        "server/hook.cpp",
+        "server/install.cpp",
+        "server/main.cpp",
+        "server/serve.cpp",
+        "server/tmux.cpp",
+        "server/tmux.hpp",
+        "server/transcript.cpp",
+        "server/transcript.hpp",
+    ],
+    copts = WARNINGS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":util",
+        "@nlohmann_json//:json",
+        "@sqlite3",
+    ],
+)
+
+cc_binary(
+    name = "ccbus-tui",
+    srcs = glob(["tui/*.cpp", "tui/*.hpp"]),
+    copts = WARNINGS,
+    data = [":ccbus"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":util",
+        "@ftxui//:component",
+        "@ftxui//:dom",
+        "@ftxui//:screen",
+        "@libsystemd//:sdbus",
+        "@nlohmann_json//:json",
+    ],
+)
+
+# bazel run //:install            -> ~/.local/bin
+# bazel run //:install -- /usr/local
+sh_binary(
+    name = "install",
+    srcs = ["//bazel:install.sh"],
+    args = [
+        "$(rootpath :ccbus)",
+        "$(rootpath :ccbus-tui)",
+    ],
+    data = [
+        ":ccbus",
+        ":ccbus-tui",
+    ],
+)
+

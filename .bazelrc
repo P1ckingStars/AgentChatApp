@@ -1,0 +1,4 @@
+common --enable_bzlmod
+build --cxxopt=-std=c++20 --host_cxxopt=-std=c++20
+# Optimised, with debug info kept.
+build -c opt --copt=-g --strip=never
